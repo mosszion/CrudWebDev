@@ -1,8 +1,40 @@
-export default function TableList({ handleOpen }) {
+import React from 'react';      
+import axios from 'axios';
+import { useState, useEffect } from 'react';
+export default function TableList({ handleOpen, searchQuery }) {
 
-    const clients = [{name: "John Doe", email: "john@example.com", job: "Developer", rate: "100", status: "Active"},
-               {name: "Jane Smith", email: "jane@example.com", job: "Designer", rate: "120", status: "Inactive"},
-               {name: "Sam Johnson", email: "sam@example.com", job: "Manager", rate: "150", status: "Active"}];
+    const [clients, setClients] = useState([]);
+
+    useEffect(() => {
+        const fetchClients = async () => {
+            try {
+                const response = await axios.get('http://localhost:3000/api/clients');
+                setClients(response.data);
+            } catch (error) {
+                console.error("Error fetching clients:", error);
+            }
+        };
+        fetchClients();
+    }, []);
+    const filteredClients = clients.filter(client => {
+        return client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               client.job.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+
+
+    //Handle delete client 
+    const handleDelete = async (clientId) => {
+        try {
+            const confirmDelete = window.confirm("Are you sure you want to delete this client?");
+            if (!confirmDelete) return;
+            // Make a DELETE request to the server
+            await axios.delete(`http://localhost:3000/api/clients/${clientId}`);
+            setClients(clients.filter(client => client.id !== clientId));
+        } catch (error) {
+            console.error("Error deleting client:", error);
+        }
+    };
   return (
     <>
     <div className="overflow-x-auto mt-10">
@@ -19,23 +51,23 @@ export default function TableList({ handleOpen }) {
             </tr>
             </thead>
             <tbody  className="hover:bg-base-300">
-                {clients.map((client, index) => (
-                <tr key={index}>
-                    <th>{index + 1}</th>
+                {filteredClients.map((client) => (
+                <tr key={client.id}>
+                    <th>{client.id}</th>
                     <td>{client.name}</td>
                     <td>{client.email}</td>
                     <td>{client.job}</td>
                     <td>{client.rate}</td>
                     <td>
-                        <span className={`badge ${client.status === "Active" ? "badge-success" : "badge-error"}`}>
-                            {client.status}
+                        <span className={`badge ${client.isactive === true ? "badge-success" : "badge-error"}`}>
+                            {client.isactive ? 'Active' : 'Inactive'}
                         </span>
                     </td>
                     <td>
-                        <button className="btn btn-secondary" onClick={() => handleOpen('edit')}>Update</button>
+                        <button className="btn btn-secondary" onClick={() => handleOpen('edit', client)}>Update</button>
                     </td>
                     <td>
-                        <button className="btn btn-error">Delete</button>
+                        <button className="btn btn-error" onClick={() => handleDelete(client.id)}>Delete</button>
                     </td>
                 </tr>
                 ))}

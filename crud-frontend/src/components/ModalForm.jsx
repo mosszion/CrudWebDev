@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-export default function ModalForm({ isOpen, onClose , mode, onSubmit }) {
+import React, { useState,useEffect } from 'react';
+import { use } from 'react';
+export default function ModalForm({ isOpen, onClose , mode, onSubmit, clientData }) {
 
     const [rate, setRate] = useState('');
     const [status, setStatus] = useState(false);     
@@ -13,11 +14,35 @@ export default function ModalForm({ isOpen, onClose , mode, onSubmit }) {
     }
 
     // Handle form submission
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
+        try {
+            const clientData = {
+                name,
+                email,
+                job,
+                rate: Number(rate),
+                isactive: status
+            };
+            await onSubmit(clientData); // Call the onSubmit function passed from the parent component
+
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            
+        }
       
         onClose();
     };
+
+    useEffect(() => {
+        if (mode === 'edit' && clientData) {
+            setName(clientData.name || '');
+            setEmail(clientData.email || '');
+            setJob(clientData.job || '');
+            setRate(clientData.rate || '');
+            setStatus(clientData.isactive || false);
+        }
+    }, [mode, clientData]);
 
     return (
         <>

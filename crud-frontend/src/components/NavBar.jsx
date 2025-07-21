@@ -1,4 +1,9 @@
-export default function NavBar({ onOpen }) {
+export default function NavBar({ onOpen, onSearch }) {
+
+  const handleSearchChange = (event) => {
+    const query = event.target.value;
+    onSearch(query); // Pass the search query to the parent component
+  };
   return (
     <>
       <div className="navbar bg-base-100 p-4">
@@ -11,6 +16,7 @@ export default function NavBar({ onOpen }) {
               type="text"
               placeholder="Search"
               className="input input-bordered w-48 md:w-auto"
+              onChange={handleSearchChange} // Handle search input changes 
             />
           </div>
         </div>
